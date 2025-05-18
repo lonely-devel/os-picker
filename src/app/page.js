@@ -1,103 +1,112 @@
-import Image from "next/image";
+"use client"
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Slider } from "@/components/ui/slider";
+import { motion } from "framer-motion";
+import {Switch} from "@/components/ui/switch";
+import {Label} from "@/components/ui/label";
 
-export default function Home() {
+const FACTORS = [
+  {
+    id: "openness",
+    label: "Я ценю открытость и возможность кастомизации",
+    osMap: { android: 1, ios: -1 },
+  },
+  {
+    id: "ecosystem",
+    label: "Я ценю цельную экосистему и бесшовную интеграцию",
+    osMap: { android: -1, ios: 1 },
+  },
+  {
+    id: "price",
+    label: "Я ограничен в бюджете и ищу доступное устройство",
+    osMap: { android: 1, ios: -1 },
+  },
+  {
+    id: "security",
+    label: "Я придаю большое значение безопасности и своевременным обновлениям",
+    osMap: { android: -1, ios: 1 },
+  },
+  {
+    id: "status",
+    label: "Я обращаю внимание на имиджевый статус устройства",
+    osMap: { android: -1, ios: 1 },
+  },
+];
+
+export default function Page() {
+  // начальное значение каждого слайдера — 3 (нейтральная важность)
+  const [values, setValues] = useState(
+      Object.fromEntries(FACTORS.map((f) => [f.id, 3]))
+  );
+
+  const [checked, setChecked] = useState(false)
+
+  const handleChange = (id, valArr) => {
+    setValues({ ...values, [id]: valArr[0] });
+  };
+
+  const onChange = (checked) => {
+      setChecked(checked)
+  }
+
+  // Подсчёт очков: суммируем (важность * коэффициент фактора)
+  const scores = FACTORS.reduce(
+      (acc, f) => {
+        acc.android += f.osMap.android * values[f.id];
+        acc.ios += f.osMap.ios * values[f.id];
+        return acc;
+      },
+      { android: 0, ios: 0 }
+  );
+
+  let recommendation = "Попробуйте обе системы!";
+  if (scores.android > scores.ios) recommendation = "Вам ближе Android";
+  else if (scores.ios > scores.android) recommendation = "Вам ближе iOS";
+
+  if(checked) recommendation = "Вам ближе Redmi 9C"
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+      <div className="max-w-xl mx-auto p-4 space-y-6">
+        <h1 className="text-2xl font-bold text-center">
+          Подбор мобильной операционной системы
+        </h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        {FACTORS.map((f) => (
+            <Card key={f.id} className="border border-muted shadow-sm">
+              <CardContent className="space-y-3 py-4">
+                <p className="font-medium leading-tight">{f.label}</p>
+                <Slider
+                    defaultValue={[values[f.id]]}
+                    min={1}
+                    max={5}
+                    step={1}
+                    onValueChange={(v) => handleChange(f.id, v)}
+                />
+                <p className="text-sm text-muted-foreground">Важность: {values[f.id]}</p>
+              </CardContent>
+            </Card>
+        ))}
+
+          <Card className="border border-muted shadow-sm">
+              <CardContent className="space-y-3 py-4">
+                  <div className="flex items-center space-x-2">
+                      <Switch id="call" onCheckedChange={onChange} checked={checked}/>
+                      <Label htmlFor="call">Надо чтоб звонило и всё</Label>
+                  </div>
+
+                      <p className="text-sm text-muted-foreground">Важность: критичная</p>
+              </CardContent>
+          </Card>
+
+          <motion.div
+              key={recommendation}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center text-xl font-semibold mt-4"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          {recommendation}
+        </motion.div>
+      </div>
   );
 }
